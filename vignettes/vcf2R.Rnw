@@ -1,0 +1,42 @@
+% Sweave(file = "./vcf2R.Rnw", driver = cacheSweaveDriver )
+\documentclass[10pt]{article}
+<<echo=FALSE>>=
+  options(width=70, continue = " ")
+@ 
+\SweaveOpts{eps=FALSE,echo=TRUE,figs.only=TRUE,keep.source=FALSE, prefix.string=figures/vcf2R}
+\usepackage{fullpage}
+\usepackage{times}
+\usepackage[colorlinks=TRUE,urlcolor=blue,citecolor=blue]{hyperref}
+%\title{CQN (Conditional Quantile Normalization)}
+%\author{Kasper Daniel Hansen \\ \texttt{khansen@jhsph.edu}
+%\and
+%Zhijin Wu \\ \texttt{zhijin\_wu@brown.edu}}
+%\date{Modified: April 29, 2012.  Compiled: \today}
+\input{/home/sgy/jhsph/latex/sgy}
+\begin{document}
+\setlength{\parskip}{0.2\baselineskip}
+\setlength{\parindent}{0pt}
+%\maketitle
+Today is \today.
+<<cachedir, echo=FALSE>>=
+setCacheDir( path = './cache/' )
+@ 
+<<packages, cache = FALSE>>=
+library("vcf2R")
+@ 
+<<hwe2R>>=
+file = "/home/sgy/jhsph/targeted-sequencing/repo/vcf2R/inst/extdata/snvs.fixed_header.hwe"
+hwe.df <- hwe2R( file = file )
+head(hwe.df)
+@
+\begin{figure}
+<<hwe-hist, fig = TRUE>>=
+with( hwe.df, hist(P, breaks = 1e2) )
+@ 
+\caption{Histogram of Hardy-Weinberg $p$-values}
+\label{hwe-hist}
+\end{figure}
+
+
+
+\end{document}
