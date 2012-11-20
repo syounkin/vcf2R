@@ -1,1 +1,7 @@
 extdata
+.Rhistory
+cache*
+*.aux
+*.log
+*.out
+*.tex
