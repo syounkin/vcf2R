@@ -1,0 +1,15 @@
+Package: vcf2R
+Version: 0.0.1
+Type: Package
+Title: vcf2R
+Description: This package is useful for convering vcftools output to objects in R
+Author: Samuel G. Younkin
+Maintainer: Samuel G. Younkin <syounkin@jhsph.edu>
+Depends: R (>= 2.10)
+Imports:
+Suggests:
+License: GPL
+LazyLoad: yes
+biocViews:
+Collate: hwe.R
+Packaged: 2012-11-20 20:10:33 UTC; sgy
