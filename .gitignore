@@ -5,3 +5,4 @@ cache*
 *.log
 *.out
 *.tex
+*~
