@@ -1,3 +1,4 @@
+.gitignore
 extdata
 .Rhistory
 cache*
