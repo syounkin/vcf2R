@@ -18,9 +18,9 @@
 \setlength{\parindent}{0pt}
 %\maketitle
 Today is \today.
-<<cachedir, echo=FALSE>>=
-setCacheDir( path = './cache/' )
-@ 
+%<<cachedir, echo=FALSE>>=
+%setCacheDir( path = './cache/' )
+%@ 
 <<packages, cache = FALSE>>=
 library("vcf2R")
 library("GenomicRanges")
