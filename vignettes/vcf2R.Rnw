@@ -23,6 +23,7 @@ setCacheDir( path = './cache/' )
 @ 
 <<packages, cache = FALSE>>=
 library("vcf2R")
+library("GenomicRanges")
 @ 
 <<hwe2R>>=
 file = "/home/sgy/jhsph/targeted-sequencing/repo/vcf2R/inst/extdata/snvs.fixed_header.hwe"
@@ -31,12 +32,19 @@ head(hwe.df)
 @
 \begin{figure}
 <<hwe-hist, fig = TRUE>>=
-with( hwe.df, hist(P, breaks = 1e2) )
+with( hwe.df, hist(p.value, breaks = 1e2) )
 @ 
 \caption{Histogram of Hardy-Weinberg $p$-values}
 \label{hwe-hist}
 \end{figure}
 
-
-
+<<pos>>=
+file = "/home/sgy/jhsph/targeted-sequencing/repo/vcf2R/inst/extdata/snvs.fixed_header.frq"
+pos.df <- frq2pos( file )
+with( pos.df, table(chr) )
+pos.gr <- with( pos.df, GRanges( seqnames = paste("chr", chr, sep = ""), ranges = IRanges( start = pos, end = pos ), strand = "+" ) )
+start(pos.gr) <- start(pos.gr) - 100e3
+end(pos.gr) <- end(pos.gr) + 100e3
+reduce(pos.gr)
+@ 
 \end{document}
