@@ -24,27 +24,44 @@ Today is \today.
 <<packages, cache = FALSE>>=
 library("vcf2R")
 library("GenomicRanges")
+library("BSgenome.Hsapiens.UCSC.hg19")
 @ 
+\section{Targeted Loci}
+<<pos>>=
+file = "/home/sgy/jhsph/targeted-sequencing/repo/vcf2R/inst/extdata/snvs.fixed_header.frq"
+pos.df <- frq2pos( file )
+head(pos.df)
+@ 
+<<loci>>=
+with( pos.df, table(chr) )
+pos.gr <- with( pos.df, GRanges( seqnames = paste("chr", chr, sep = ""), ranges = IRanges( start = pos, end = pos ), strand = "+" ) )
+seqlengths(pos.gr) <- seqlengths(Hsapiens)[levels(seqnames(pos.gr))]
+start(pos.gr) <- start(pos.gr) - 10e3
+end(pos.gr) <- end(pos.gr) + 10e3
+loci <- reduce(pos.gr)
+start(loci) <- start(loci) + 10e3
+end(loci) <- end(loci) - 10e3
+@ 
+\newpage
+<<width>>=
+val <- data.frame( n.snps = countOverlaps(loci, pos.gr), kb = width(loci)/1e3 )
+values(loci) <- val
+names(loci) <- c("PAX7", "ABCA4", "IRF6", "VAX1", "FGFR2", "BMP4", "NTN1", "NOG", "MAFB", "MSX1", "8q24", "PTCH1", "FOXE1")
+loci
+sum(width(loci))/1e6
+with( values(loci), sum(n.snps) )
+@ 
+\section{Hardy-Weinberg Equilibrium}
 <<hwe2R>>=
 file = "/home/sgy/jhsph/targeted-sequencing/repo/vcf2R/inst/extdata/snvs.fixed_header.hwe"
 hwe.df <- hwe2R( file = file )
 head(hwe.df)
 @
-\begin{figure}
-<<hwe-hist, fig = TRUE>>=
-with( hwe.df, hist(p.value, breaks = 1e2) )
-@ 
-\caption{Histogram of Hardy-Weinberg $p$-values}
-\label{hwe-hist}
-\end{figure}
-
-<<pos>>=
-file = "/home/sgy/jhsph/targeted-sequencing/repo/vcf2R/inst/extdata/snvs.fixed_header.frq"
-pos.df <- frq2pos( file )
-with( pos.df, table(chr) )
-pos.gr <- with( pos.df, GRanges( seqnames = paste("chr", chr, sep = ""), ranges = IRanges( start = pos, end = pos ), strand = "+" ) )
-start(pos.gr) <- start(pos.gr) - 100e3
-end(pos.gr) <- end(pos.gr) + 100e3
-reduce(pos.gr)
-@ 
+%\begin{figure}
+%<<hwe-hist, fig = TRUE, echo = FALSE, eval = FALSE>>=
+%with( hwe.df, hist(p.value, breaks = 1e2) )
+%@ 
+%\caption{Histogram of Hardy-Weinberg $p$-values}
+%\label{hwe-hist}
+%\end{figure}
 \end{document}
