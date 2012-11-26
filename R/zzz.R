@@ -7,8 +7,12 @@ Welcome to vcf2R version ", version, "\n",
 "by Samuel G. Younkin
 
 The package for parsing vcftools
-output files and creating nice R
+output files, and creating nice R
 objects.
+
+This package is currently under
+development for use by Beaty et
+al.
 
 I hope that you will be loving it!
 ==================================", sep = "" ) )
