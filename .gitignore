@@ -6,3 +6,4 @@ cache*
 *.out
 *.tex
 *~
+data
