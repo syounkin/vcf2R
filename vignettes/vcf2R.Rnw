@@ -12,6 +12,7 @@
 %\and
 %Zhijin Wu \\ \texttt{zhijin\_wu@brown.edu}}
 %\date{Modified: April 29, 2012.  Compiled: \today}
+%\input{/home/bst/student/syounkin/jhsph/latex/sgy}
 \input{/home/sgy/jhsph/latex/sgy}
 \begin{document}
 \setlength{\parskip}{0.2\baselineskip}
