@@ -23,9 +23,11 @@ Today is \today.
 %setCacheDir( path = './cache/' )
 %@ 
 <<packages, cache = FALSE>>=
+rm(list=ls())
 library("vcf2R")
 library("GenomicRanges")
-library("BSgenome.Hsapiens.UCSC.hg19")
+#library("BSgenome.Hsapiens.UCSC.hg19")
+library("Gviz")
 @ 
 \section{Targeted Loci}
 <<pos>>=
@@ -52,17 +54,67 @@ loci
 sum(width(loci))/1e6
 with( values(loci), sum(n.snps) )
 @ 
+<<targets>>=
+data("targets")
+targets.gr
+@ 
+\section{Regions}
+
+
+<<kg, cache = TRUE>>=
+known.gene.file <- system.file( "extdata", "known-genes", package = "vcf2R" )
+kg.df <- data.frame(scan( file = known.gene.file, sep = "\t", what = list("",1L,1L,"","","",1L,1L,1L,1L,"","") ))
+names(kg.df) <- c("chr", "start", "end", "name", "foo", "strand", "cds.start", "cds.end", "foo2", "num.exons", "exon.coods.start", "exon.coods.end" )
+kg.gr <- GRanges( seqnames = kg.df$chr, ranges = IRanges( start = kg.df$start, end = kg.df$end ), strand = kg.df$strand )
+@ 
+
+<<track1, eval = TRUE>>=
+ht <- 4; wd <- ht*1.618;
+for( locus in names(loci) ){
+    gr <- targets.gr[names(targets.gr)==locus,]
+  chr <- as.character(unique(seqnames(gr)))
+  seqlengths(gr) <- seqlengths(Hsapiens)[levels(seqnames(gr))]
+  atrack <- AnnotationTrack(gr, name=paste0(locus, " Target"), chromosome = chr, genome = "hg19", stacking = "squish")
+  atrack2 <- AnnotationTrack(loci[names(loci)==locus,], chromosome = chr, genome = "hg19", name=paste0(locus, " Actual"), stacking = "squish")
+  gtrack <- GenomeAxisTrack()
+  itrack <- IdeogramTrack(genome="hg19", chromosome=chr)
+  kg.sub.df <- as.data.frame(kg.gr[subjectHits(findOverlaps( loci[names(loci)==locus,], kg.gr )),])
+  if( nrow(kg.sub.df) != 0 ){
+    kg.sub.df <- kg.sub.df[,-c(1,4,5)]
+    
+    grtrack <- GeneRegionTrack(kg.sub.df, genome="hg19", chromosome=as.character(seqnames(loci)[which(names(loci)==locus)]), name="Known Genes")
+
+    pdf( file = paste0( "./figures/loci/", locus, ".pdf" ), height = ht, width = wd )
+    plotTracks(list(atrack2,atrack,grtrack,gtrack,itrack), add = FALSE, main = locus)
+    dev.off()
+  }else{
+    pdf( file = paste0( "./figures/loci/", locus, ".pdf" ), height = ht, width = wd )
+    plotTracks(list(atrack2,atrack,gtrack,itrack), add = FALSE, main = locus)
+    dev.off()
+  }
+
+}
+@ 
+<<kg-sub>>=
+kg.sub.df
+@ 
+\begin{figure}
+\includegraphics{./figures/loci/FOXE1}
+\end{figure}
+\begin{figure}
+\includegraphics{./figures/loci/IRF6}
+\end{figure}
+\begin{figure}
+\includegraphics{./figures/loci/8q24}
+\end{figure}
+\begin{figure}
+\includegraphics{./figures/loci/BMP4}
+\end{figure}
 \section{Hardy-Weinberg Equilibrium}
-<<hwe2R>>=
+<<hwe2R, cache = FALSE>>=
 file <- system.file( "extdata", "snvs.fixed_header.hwe", package = "vcf2R")
 hwe.df <- hwe2R( file = file )
 head(hwe.df)
 @
-%\begin{figure}
-%<<hwe-hist, fig = TRUE, echo = FALSE, eval = FALSE>>=
-%with( hwe.df, hist(p.value, breaks = 1e2) )
-%@ 
-%\caption{Histogram of Hardy-Weinberg $p$-values}
-%\label{hwe-hist}
-%\end{figure}
+
 \end{document}
