@@ -26,7 +26,7 @@ Today is \today.
 rm(list=ls())
 library("vcf2R")
 library("GenomicRanges")
-#library("BSgenome.Hsapiens.UCSC.hg19")
+library("BSgenome.Hsapiens.UCSC.hg19")
 library("Gviz")
 @ 
 \section{Targeted Loci}
@@ -37,7 +37,7 @@ head(pos.df)
 @ 
 <<loci>>=
 with( pos.df, table(chr) )
-pos.gr <- with( pos.df, GRanges( seqnames = paste("chr", chr, sep = ""), ranges = IRanges( start = pos, end = pos ), strand = "+" ) )
+pos.gr <- with( pos.df, GRanges( seqnames = paste("chr", chr, sep = ""), ranges = IRanges( start = pos, end = pos ), strand = "*" ) )
 seqlengths(pos.gr) <- seqlengths(Hsapiens)[levels(seqnames(pos.gr))]
 start(pos.gr) <- start(pos.gr) - 10e3
 end(pos.gr) <- end(pos.gr) + 10e3
@@ -55,23 +55,24 @@ sum(width(loci))/1e6
 with( values(loci), sum(n.snps) )
 @ 
 <<targets>>=
-data("targets")
-targets.gr
+data("targets.hg19")
+targets.hg19.gr
 @ 
 \section{Regions}
 
 
 <<kg, cache = TRUE>>=
-known.gene.file <- system.file( "extdata", "known-genes", package = "vcf2R" )
-kg.df <- data.frame(scan( file = known.gene.file, sep = "\t", what = list("",1L,1L,"","","",1L,1L,1L,1L,"","") ))
-names(kg.df) <- c("chr", "start", "end", "name", "foo", "strand", "cds.start", "cds.end", "foo2", "num.exons", "exon.coods.start", "exon.coods.end" )
-kg.gr <- GRanges( seqnames = kg.df$chr, ranges = IRanges( start = kg.df$start, end = kg.df$end ), strand = kg.df$strand )
+#known.gene.file <- system.file( "extdata", "known-genes", package = "vcf2R" )
+#kg.df <- data.frame(scan( file = known.gene.file, sep = "\t", what = list("",1L,1L,"","","",1L,1L,1L,1L,"","") ))
+#names(kg.df) <- c("chr", "start", "end", "name", "foo", "strand", "cds.start", "cds.end", "foo2", "num.exons", "exon.coods.start", "exon.coods.end" )
+data(kg.hg19)
+kg.gr <- GRanges( seqnames = kg.hg19$chr, ranges = IRanges( start = kg.hg19$start, end = kg.hg19$end ), strand = kg.hg19$strand )
 @ 
 
 <<track1, eval = TRUE>>=
 ht <- 4; wd <- ht*1.618;
 for( locus in names(loci) ){
-    gr <- targets.gr[names(targets.gr)==locus,]
+    gr <- targets.hg19.gr[names(targets.hg19.gr)==locus,]
   chr <- as.character(unique(seqnames(gr)))
   seqlengths(gr) <- seqlengths(Hsapiens)[levels(seqnames(gr))]
   atrack <- AnnotationTrack(gr, name=paste0(locus, " Target"), chromosome = chr, genome = "hg19", stacking = "squish")
