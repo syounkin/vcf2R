@@ -62,28 +62,23 @@ targets.hg19.gr
 
 
 <<kg, cache = TRUE>>=
-#known.gene.file <- system.file( "extdata", "known-genes", package = "vcf2R" )
-#kg.df <- data.frame(scan( file = known.gene.file, sep = "\t", what = list("",1L,1L,"","","",1L,1L,1L,1L,"","") ))
-#names(kg.df) <- c("chr", "start", "end", "name", "foo", "strand", "cds.start", "cds.end", "foo2", "num.exons", "exon.coods.start", "exon.coods.end" )
 data(kg.hg19)
-kg.gr <- GRanges( seqnames = kg.hg19$chr, ranges = IRanges( start = kg.hg19$start, end = kg.hg19$end ), strand = kg.hg19$strand )
+kg.gr <- GRanges( seqnames = kg.hg19$chr, ranges = IRanges( start = kg.hg19$start, end = kg.hg19$end ), strand = kg.hg19$strand, exon = as.factor(kg.hg19$exon), gene = as.factor(gene <- substr( kg.hg19$exon, 1, 8)), feature = as.factor(gene), transcript = as.factor(gene), symbol = as.factor(gene), id = as.factor(gene) )
 @ 
 
 <<track1, eval = TRUE>>=
 ht <- 4; wd <- ht*1.618;
 for( locus in names(loci) ){
-    gr <- targets.hg19.gr[names(targets.hg19.gr)==locus,]
+  gr <- targets.hg19.gr[names(targets.hg19.gr)==locus,]
   chr <- as.character(unique(seqnames(gr)))
   seqlengths(gr) <- seqlengths(Hsapiens)[levels(seqnames(gr))]
   atrack <- AnnotationTrack(gr, name=paste0(locus, " Target"), chromosome = chr, genome = "hg19", stacking = "squish")
   atrack2 <- AnnotationTrack(loci[names(loci)==locus,], chromosome = chr, genome = "hg19", name=paste0(locus, " Actual"), stacking = "squish")
   gtrack <- GenomeAxisTrack()
   itrack <- IdeogramTrack(genome="hg19", chromosome=chr)
-  kg.sub.df <- as.data.frame(kg.gr[subjectHits(findOverlaps( loci[names(loci)==locus,], kg.gr )),])
-  if( nrow(kg.sub.df) != 0 ){
-    kg.sub.df <- kg.sub.df[,-c(1,4,5)]
-    
-    grtrack <- GeneRegionTrack(kg.sub.df, genome="hg19", chromosome=as.character(seqnames(loci)[which(names(loci)==locus)]), name="Known Genes")
+  kg.sub.gr <- kg.gr[subjectHits(findOverlaps( loci[names(loci)==locus,], kg.gr )),]
+  if( length(kg.sub.gr) != 0 ){
+    grtrack <- GeneRegionTrack(range = kg.sub.gr, genome="hg19", chromosome=as.character(seqnames(loci)[which(names(loci)==locus)]), name="Known Genes" )
 
     pdf( file = paste0( "./figures/loci/", locus, ".pdf" ), height = ht, width = wd )
     plotTracks(list(atrack2,atrack,grtrack,gtrack,itrack), add = FALSE, main = locus)
@@ -95,9 +90,6 @@ for( locus in names(loci) ){
   }
 
 }
-@ 
-<<kg-sub>>=
-kg.sub.df
 @ 
 \begin{figure}
 \includegraphics{./figures/loci/FOXE1}
