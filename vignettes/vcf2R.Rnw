@@ -30,7 +30,7 @@ library("BSgenome.Hsapiens.UCSC.hg19")
 library("Gviz")
 @ 
 \section{Targeted Loci}
-<<pos>>=
+<<pos, cache = TRUE>>=
 file <- system.file( "extdata", "snvs.fixed_header.frq", package = "vcf2R")
 pos.df <- frq2pos( file )
 head(pos.df)
@@ -66,7 +66,7 @@ data(kg.hg19)
 kg.gr <- GRanges( seqnames = kg.hg19$chr, ranges = IRanges( start = kg.hg19$start, end = kg.hg19$end ), strand = kg.hg19$strand, exon = as.factor(kg.hg19$exon), gene = as.factor(gene <- substr( kg.hg19$exon, 1, 8)), feature = as.factor(gene), transcript = as.factor(gene), symbol = as.factor(gene), id = as.factor(gene) )
 @ 
 
-<<track1, eval = TRUE>>=
+<<track1, eval = FALSE>>=
 ht <- 4; wd <- ht*1.618;
 for( locus in names(loci) ){
   gr <- targets.hg19.gr[names(targets.hg19.gr)==locus,]
@@ -104,10 +104,14 @@ for( locus in names(loci) ){
 \includegraphics{./figures/loci/BMP4}
 \end{figure}
 \section{Hardy-Weinberg Equilibrium}
-<<hwe2R, cache = FALSE>>=
+<<hwe2R, cache = TRUE>>=
 file <- system.file( "extdata", "snvs.fixed_header.hwe", package = "vcf2R")
 hwe.df <- hwe2R( file = file )
 head(hwe.df)
 @
-
+\section{Minor Allele Frequencies}
+<<>>=
+file <- system.file( "extdata", "8q24-parents.frq", package = "vcf2R")
+maf.di <- frq2R( file = file )
+@ 
 \end{document}
