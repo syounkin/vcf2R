@@ -66,8 +66,8 @@ data(kg.hg19)
 kg.gr <- GRanges( seqnames = kg.hg19$chr, ranges = IRanges( start = kg.hg19$start, end = kg.hg19$end ), strand = kg.hg19$strand, exon = as.factor(kg.hg19$exon), gene = as.factor(gene <- substr( kg.hg19$exon, 1, 8)), feature = as.factor(gene), transcript = as.factor(gene), symbol = as.factor(gene), id = as.factor(gene) )
 @ 
 
-<<track1, eval = FALSE>>=
-ht <- 4; wd <- ht*1.618;
+<<track1, eval = TRUE>>=
+ht <- 8; wd <- ht*1.618;
 for( locus in names(loci) ){
   gr <- targets.hg19.gr[names(targets.hg19.gr)==locus,]
   chr <- as.character(unique(seqnames(gr)))
@@ -76,16 +76,20 @@ for( locus in names(loci) ){
   atrack2 <- AnnotationTrack(loci[names(loci)==locus,], chromosome = chr, genome = "hg19", name=paste0(locus, " Actual"), stacking = "squish")
   gtrack <- GenomeAxisTrack()
   itrack <- IdeogramTrack(genome="hg19", chromosome=chr)
+  file <- system.file( "extdata", paste0(locus,"-parents.frq"), package = "vcf2R")
+  maf.di <- frq2R( file = file )
+  maf.gr <- with( maf.di[!is.na(maf.di[,1]),], GRanges( seqnames = as.character(seqnames(loci)[which(names(loci)==locus)]), ranges = IRanges( start = pos, end = pos ), strand = "*", maf = maf ) )
+  dtrack <- DataTrack( range = maf.gr, data = -log10(values(maf.gr)$maf), chr = as.character(seqnames(loci)[which(names(loci)==locus)]), cex = 0.25, name = "-log10 MAF", ylim = c(0,4) )
   kg.sub.gr <- kg.gr[subjectHits(findOverlaps( loci[names(loci)==locus,], kg.gr )),]
   if( length(kg.sub.gr) != 0 ){
     grtrack <- GeneRegionTrack(range = kg.sub.gr, genome="hg19", chromosome=as.character(seqnames(loci)[which(names(loci)==locus)]), name="Known Genes" )
 
     pdf( file = paste0( "./figures/loci/", locus, ".pdf" ), height = ht, width = wd )
-    plotTracks(list(atrack2,atrack,grtrack,gtrack,itrack), add = FALSE, main = locus)
+    plotTracks(list(dtrack, atrack2,atrack,grtrack,gtrack,itrack), add = FALSE, main = locus)
     dev.off()
   }else{
     pdf( file = paste0( "./figures/loci/", locus, ".pdf" ), height = ht, width = wd )
-    plotTracks(list(atrack2,atrack,gtrack,itrack), add = FALSE, main = locus)
+    plotTracks(list(dtrack, atrack2,atrack,gtrack,itrack), add = FALSE, main = locus)
     dev.off()
   }
 
@@ -104,13 +108,13 @@ for( locus in names(loci) ){
 \includegraphics{./figures/loci/BMP4}
 \end{figure}
 \section{Hardy-Weinberg Equilibrium}
-<<hwe2R, cache = TRUE>>=
+<<hwe2R, eval = FALSE, cache = FALSE>>=
 file <- system.file( "extdata", "snvs.fixed_header.hwe", package = "vcf2R")
 hwe.df <- hwe2R( file = file )
 head(hwe.df)
 @
 \section{Minor Allele Frequencies}
-<<>>=
+<<eval = FALSE>>=
 file <- system.file( "extdata", "8q24-parents.frq", package = "vcf2R")
 maf.di <- frq2R( file = file )
 @ 
