@@ -1,0 +1,87 @@
+% Sweave(file = "./readVcf.Rnw")
+\documentclass[10pt]{article}
+<<echo=FALSE>>=
+  options(width=70, continue = " ")
+@ 
+\SweaveOpts{eps=FALSE,echo=TRUE,figs.only=TRUE,keep.source=FALSE, prefix.string=figures/readVcf}
+\usepackage{fullpage}
+\usepackage{times}
+\usepackage[colorlinks=TRUE,urlcolor=blue,citecolor=blue]{hyperref}
+%\title{CQN (Conditional Quantile Normalization)}
+%\author{Kasper Daniel Hansen \\ \texttt{khansen@jhsph.edu}
+%\and
+%Zhijin Wu \\ \texttt{zhijin\_wu@brown.edu}}
+%\date{Modified: April 29, 2012.  Compiled: \today}
+%\input{/home/bst/student/syounkin/jhsph/latex/sgy}
+\input{/home/sgy/jhsph/latex/sgy}
+\begin{document}
+\setlength{\parskip}{0.2\baselineskip}
+\setlength{\parindent}{0pt}
+%\maketitle
+Today is \today.
+%<<cachedir, echo=FALSE>>=
+%setCacheDir( path = './cache/' )
+%@ 
+<<packages, cache = FALSE>>=
+rm(list=ls())
+source("~/jhsph/R/reload.R")
+library("VariantAnnotation")
+library("vcf2R")
+#library("GenomicRanges")
+#library("BSgenome.Hsapiens.UCSC.hg19")
+#library("Gviz")
+@ 
+
+<<make>>=
+
+make <- FALSE
+locus <- "BMP4"
+if( make ){
+  fl <- paste0("/thumper/ctsa/beaty/targeted_seq/regional/", locus, "-european.recode.vcf.gz" )
+  vcf <- readVcf(fl, "hg19")
+  save( vcf, file = paste0("/thumper/ctsa/beaty/targeted_seq/regional/", locus, "-european.vcf.RData" ) )
+} else {
+  data(list = paste0(locus,"-european.vcf") )
+}
+@ 
+<<show>>=
+
+show(vcf)
+@ 
+<<maf>>=
+
+geno.mat <- geno(vcf)$GT
+geno.mat <-t( ifelse( geno.mat == "0/0", 0L, ifelse( geno.mat == "0/1", 1L, ifelse( geno.mat == "1/1", 2L, NA ))) ) # subjects by markers
+
+# Remove monomorphic SNPs 
+geno.mat <- geno.mat[,colSums(geno.mat, na.rm = TRUE)!=0]
+
+# Compute MAF
+maf <- colSums(geno.mat, na.rm = TRUE)/2/nrow(geno.mat)
+maf <- ifelse( maf > 0.5, 1-0.5, maf )
+summary(maf)
+
+# Create map data frame
+ll <- strsplit( x = colnames(geno.mat), split = ":" )
+map.df <- data.frame((do.call( "rbind", ll )))
+names(map.df) <- c("chr", "pos" )
+maf.df <- data.frame( map.df, maf = maf )
+rownames(maf.df) <- NULL
+head(maf.df)
+@ 
+<<geno-mat>>=
+id.vec <- rownames(geno.mat)
+lll <- strsplit( x = id.vec, split = "-" )
+id.vec <- data.frame((do.call( "rbind", lll )))[,3]
+head(id.vec)
+colnames(geno.mat) <- NULL
+rownames(geno.mat) <- NULL
+head(geno.mat[,1:5],10)
+@ 
+
+<<common>>=
+geno.common.mat <- subset( geno.mat, select = (maf >= 0.01) )
+( n.snps <- ncol(geno.common.mat) )
+@ 
+There are \Sexpr{n.snps} SNPS with $\textrm{maf}\ge 0.01$ in BMP4 European parents.
+\end{document}
