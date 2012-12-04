@@ -34,12 +34,12 @@ library("vcf2R")
 
 <<make>>=
 
-make <- FALSE
-locus <- "BMP4"
+make <- TRUE
+locus <- "8q24"
 if( make ){
   fl <- paste0("/thumper/ctsa/beaty/targeted_seq/regional/", locus, "-european.recode.vcf.gz" )
   vcf <- readVcf(fl, "hg19")
-  save( vcf, file = paste0("/thumper/ctsa/beaty/targeted_seq/regional/", locus, "-european.vcf.RData" ) )
+  save( vcf, file = paste0("/home/bst/student/syounkin/R/packages/vcf2R/data/", locus, "-european.vcf.RData" ) )
 } else {
   data(list = paste0(locus,"-european.vcf") )
 }
