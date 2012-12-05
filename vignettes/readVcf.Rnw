@@ -30,10 +30,11 @@ library("vcf2R")
 #library("Gviz")
 @ 
 
-<<make>>=
+<<make, cache = TRUE>>=
 
 make <- FALSE
 locus <- "8q24"
+#locus <- "BMP4"
 if( make ){
   fl <- paste0("/thumper/ctsa/beaty/targeted_seq/regional/", locus, "-european.recode.vcf.gz" )
   vcf <- readVcf(fl, "hg19")
@@ -42,7 +43,8 @@ if( make ){
   data(list = paste0(locus,"-european.vcf") )
 }
 @ 
-<<show>>=
+The following show method eats up a lot of RAM!
+<<show, eval = FALSE, echo = TRUE>>=
 
 show(vcf)
 @ 
@@ -76,7 +78,9 @@ colnames(geno.mat) <- NULL
 rownames(geno.mat) <- NULL
 head(geno.mat[,1:5],10)
 @ 
-
+<<save-geno>>=
+  save( geno.mat, file = paste0("/home/sgy/jhsph/targeted-sequencing/repo/vcf2R/data/", locus, "-european.geno.RData" ) )
+@ 
 <<common>>=
 geno.common.mat <- subset( geno.mat, select = (maf >= 0.01) )
 ( n.snps <- ncol(geno.common.mat) )
