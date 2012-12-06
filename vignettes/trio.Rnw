@@ -27,7 +27,7 @@ source("~/jhsph/R/reload.R")
 library("VariantAnnotation")
 library("vcf2R")
 library("trioClasses")
-data("BMP4-european.geno")
+data("BMP4-european-all.geno")
 data(ped, package= "trioClasses" )
 @ 
 <<pedigree>>=

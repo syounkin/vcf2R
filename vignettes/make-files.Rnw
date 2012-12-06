@@ -1,0 +1,37 @@
+% Sweave(file = './make-files.Rnw')
+% , driver = cacheSweaveDriver)
+\documentclass[10pt]{article}
+<<echo=FALSE>>=
+  options(width=70, continue = " ")
+@ 
+\SweaveOpts{eps=FALSE,echo=TRUE,figs.only=TRUE,keep.source=FALSE, prefix.string=figures/make-files}
+\usepackage{fullpage}
+\usepackage{times}
+\usepackage[colorlinks=TRUE,urlcolor=blue,citecolor=blue]{hyperref}
+%\title{TITLE}
+%\author{Sam}
+%\date{\today}
+%\input{/home/bst/student/syounkin/jhsph/latex/sgy}
+%\input{/home/sgy/jhsph/latex/sgy}
+\begin{document}
+\setlength{\parskip}{0.2\baselineskip}
+\setlength{\parindent}{0pt}
+%\maketitle
+Today is \today.
+%<<cachedir, echo=FALSE>>=
+%setCacheDir( path = './cache/' )
+%@ 
+<<packages>>=
+rm(list=ls())
+source("~/jhsph/R/reload.R")
+library("vcf2R")
+data(ped, package= "vcf2R" )
+@
+<<idvec>>=
+id.vec <- as.character(with( subset(ped.df, Ethnicity=='european'), id ))
+id.vec <- paste0( "H_ME-", id.vec, "-", id.vec )
+@ 
+<<cat>>=
+cat( id.vec, sep = "\n", file = "./../inst/extdata/european-all" )
+@ 
+\end{document}
