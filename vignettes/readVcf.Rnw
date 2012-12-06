@@ -1,4 +1,5 @@
-% Sweave(file = "./readVcf.Rnw")
+% Sweave(file = './readVcf.Rnw')
+% , driver = cacheSweaveDriver)
 \documentclass[10pt]{article}
 <<echo=FALSE>>=
   options(width=70, continue = " ")
@@ -22,19 +23,14 @@ Today is \today.
 %@ 
 <<packages, cache = FALSE>>=
 rm(list=ls())
-source("~/jhsph/R/reload.R")
+#source("~/jhsph/R/reload.R")
 library("VariantAnnotation")
 library("vcf2R")
-#library("GenomicRanges")
-#library("BSgenome.Hsapiens.UCSC.hg19")
-#library("Gviz")
 @ 
-
-<<make, cache = TRUE>>=
-
-make <- FALSE
-locus <- "8q24"
-#locus <- "BMP4"
+<<make, cache = FALSE>>=
+make <- TRUE
+#locus <- "8q24"
+locus <- "BMP4"
 if( make ){
   fl <- paste0("/thumper/ctsa/beaty/targeted_seq/regional/", locus, "-european.recode.vcf.gz" )
   vcf <- readVcf(fl, "hg19")
@@ -45,45 +41,14 @@ if( make ){
 @ 
 The following show method eats up a lot of RAM!
 <<show, eval = FALSE, echo = TRUE>>=
-
 show(vcf)
 @ 
-<<maf>>=
-
+<<geno>>=
 geno.mat <- geno(vcf)$GT
-geno.mat <-t( ifelse( geno.mat == "0/0", 0L, ifelse( geno.mat == "0/1", 1L, ifelse( geno.mat == "1/1", 2L, NA ))) ) # subjects by markers
-
-# Remove monomorphic SNPs 
-geno.mat <- geno.mat[,colSums(geno.mat, na.rm = TRUE)!=0]
-
-# Compute MAF
-maf <- colSums(geno.mat, na.rm = TRUE)/2/nrow(geno.mat)
-maf <- ifelse( maf > 0.5, 1-0.5, maf )
-summary(maf)
-
-# Create map data frame
-ll <- strsplit( x = colnames(geno.mat), split = ":" )
-map.df <- data.frame((do.call( "rbind", ll )))
-names(map.df) <- c("chr", "pos" )
-maf.df <- data.frame( map.df, maf = maf )
-rownames(maf.df) <- NULL
-head(maf.df)
 @ 
-<<geno-mat>>=
-id.vec <- rownames(geno.mat)
-lll <- strsplit( x = id.vec, split = "-" )
-id.vec <- data.frame((do.call( "rbind", lll )))[,3]
-head(id.vec)
-colnames(geno.mat) <- NULL
-rownames(geno.mat) <- NULL
-head(geno.mat[,1:5],10)
-@ 
+
 <<save-geno>>=
-  save( geno.mat, file = paste0("/home/sgy/jhsph/targeted-sequencing/repo/vcf2R/data/", locus, "-european.geno.RData" ) )
+  save( geno.mat, file = paste0("/home/bst/student/syounkin/R/packages/vcf2R/data/", locus, "-european.geno.RData" ) )
 @ 
-<<common>>=
-geno.common.mat <- subset( geno.mat, select = (maf >= 0.01) )
-( n.snps <- ncol(geno.common.mat) )
-@ 
-There are \Sexpr{n.snps} SNPS with $\textrm{maf}\ge 0.01$ in BMP4 European parents.
 \end{document}
+
