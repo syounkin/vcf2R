@@ -21,61 +21,109 @@ Today is \today.
 %<<cachedir, echo=FALSE>>=
 %setCacheDir( path = './cache/' )
 %@ 
-<<packages>>=
+<<rmandreload, echo = FALSE>>=
 rm(list=ls())
 source("~/jhsph/R/reload.R")
-library("VariantAnnotation")
+@ 
+<<packages>>=
+#library("VariantAnnotation")
 library("vcf2R")
 library("trioClasses")
+library("trio")
+#library("BSgenome.Hsapiens.UCSC.hg19")
+#library("Gviz")
 data("BMP4-european-all.geno")
 data(ped, package= "trioClasses" )
 @ 
+After loading th enecessary packages and data we first make sure that the pedigree data frame contains fields F, M and O for father, mother and offspring ids.  Note that these ids should match those in the vcf file.
 <<pedigree>>=
 pedigreeInfo <- within(ped.df, {
   F <- as.character(fid)
   M <- as.character(mid)
   O <- as.character(id)
 })
-pedigreeInfo <- subset( pedigreeInfo, !is.na(F) & !is.na(M) & !is.na(O) )
 tg.ped <- Pedigree(pedigreeInfo = pedigreeInfo)
 tg.ped
 @ 
+First we do our  best to retrieve ids from the vcf/geno data and manipulate them to match the pedigree file.
 <<ids>>=
-id <- offspringNames(tg.ped)
-fid <- fatherNames(tg.ped)
-mid <- motherNames(tg.ped)
-names(fid) <- id
-names(mid) <- id
-c(length(unique(id)),length(unique(fid)),length(unique(mid)))
-@ 
-<<id, eval = TRUE>>=
 id.vec <- colnames(geno.mat)
-lll <- strsplit( x = id.vec, split = "-" )
-id.vec <- as.character(data.frame((do.call( "rbind", lll )))[,3])
-
+head(id.vec)
+foo <- strsplit( x = id.vec, split = "-" )
+id.vec <- as.character(data.frame((do.call( "rbind", foo )))[,3])
+length(id.vec)
+head(id.vec)
 @ 
+There are \Sexpr{length(id.vec)} subjects in the genotpye matrix.  Now with ids formatted properly we create the genotype object needed for the gTrio class, as well as the accompanying ped object such that all trio memebrs have data in the genotype matrix.  These values may all be NA, as NA is not precluded from the genotype matrix.
 <<genomat>>=
 genomat <- t( ifelse( geno.mat == "0/0", 0L, ifelse( geno.mat == "0/1", 1L, ifelse( geno.mat == "1/1", 2L, NA ))) )
+colnames(genomat) <- rownames(geno.mat)
 rownames(genomat) <- id.vec
-# Remove monomorphic SNPs 
-genomat <- genomat[,colSums(genomat, na.rm = TRUE)!=0]
+geno.trio <- genoMat( tg.ped, genomat)
+( tg.ped.complete <- completeTrios(tg.ped,colnames(geno.trio)) )
+@ 
+Now we create the gTrio object.
+<<gTrio>>=
+( gTrio.obj <- gTrio( tg.ped.complete, geno = geno.trio ) )
+@ 
 
-# Compute MAF
-maf <- colSums(genomat, na.rm = TRUE)/2/nrow(genomat)
-maf <- ifelse( maf > 0.5, 1-0.5, maf )
+<<>>=
+missing.snp <- rowSums(is.na(geno(gTrio.obj)))/dim(geno(gTrio.obj))[2]/dim(geno(gTrio.obj))[3]
+missing.subject <- colSums(is.na(geno(gTrio.obj)))/dim(geno(gTrio.obj))[1]
+length(missing.subject)
+length(missing.snp)
+@ 
+
+\begin{figure}
+<<miss-hist, fig = TRUE>>=
+layout(matrix(1:2,ncol=2,nrow=1))
+hist( missing.snp, breaks = 10)
+hist( missing.subject, breaks = 10)
+@ 
+\end{figure}
+
+<<maf>>=
+geno <- geno(gTrio.obj)
+maf <- rowSums(geno[,,1:2],dims=1, na.rm=TRUE)/rowSums(!is.na(geno[,,1:2]),dims=1)/2
+maf <- ifelse( maf >= 0.5, 1 - maf, maf )
 summary(maf)
+@ 
+\begin{figure}
+<<maf-miss, fig=TRUE>>=
+plot(1, type = "n", ylim = c(0,1), xlim = c(0,0.5) )
+points(  x = maf, y = missing.snp, pch = 20, cex = 2 )
+@ 
+\end{figure}
+<<>>=
+geno.trio.2 <- geno.trio[-c(which(missing.snp > 0.10),which(maf<0.05)),]
+( gTrio.obj <- gTrio( tg.ped.complete, geno = geno.trio.2 ) )
+geno <- getGeno( gTrio.obj, type = "holger" )
+@
+<<maf>>=
+geno <- geno(gTrio.obj)
+maf2 <- rowSums(geno[,,1:2],dims=1, na.rm=TRUE)/rowSums(!is.na(geno[,,1:2]),dims=1)/2
+maf2 <- ifelse( maf2 >= 0.5, 1 - maf2, maf2 )
+@ 
 
-# Create map data frame
-ll <- strsplit( x = colnames(genomat), split = ":" )
-map.df <- data.frame((do.call( "rbind", ll )))
-names(map.df) <- c("chr", "pos" )
-maf.df <- data.frame( map.df, maf = maf )
-rownames(maf.df) <- NULL
-head(maf.df)
+Now, it's easy to perform any method in Holger's trio package, such as alllelicTDT.
+<<aTDT>>=
+geno <- getGeno( gTrio.obj, type = "holger" )
+( aTDT <- allelicTDT( mat.snp = geno, size = 1e4 ) )
+( gTDT <- tdt( snp = geno ) )
 @ 
-<<common, eval = FALSE>>=
-genomat.common <- subset( genomat, select = (maf >= 0.01) )
-n.snps <- ncol(genomat.common) 
+
+\begin{figure}
+<<ld, fig=TRUE>>=
+ld <- getLD(x = geno, which = "both", parentsOnly = TRUE)
+plot(ld, y = "rSquare", xlab = "", ylab = "", cexAxis = 0.01)
 @ 
+\end{figure}
+
+\begin{figure}
+<<maf-plot, fig=TRUE>>=
+hist(maf, breaks = 10)
+@ 
+\end{figure}
+
+
 \end{document}
-
