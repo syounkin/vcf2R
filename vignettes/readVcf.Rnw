@@ -29,26 +29,21 @@ library("vcf2R")
 @ 
 <<make, cache = FALSE>>=
 make <- TRUE
-#locus <- "8q24"
-locus <- "BMP4"
+locus <- "8q24"
+#locus <- "BMP4"
 if( make ){
-  fl <- paste0("/thumper/ctsa/beaty/targeted_seq/regional/", locus, "-european.recode.vcf.gz" )
+  fl <- paste0("/thumper/ctsa/beaty/targeted_seq/regional/", locus, "-european-all.recode.vcf.gz" )
   vcf <- readVcf(fl, "hg19")
-  save( vcf, file = paste0("/home/bst/student/syounkin/R/packages/vcf2R/data/", locus, "-european.vcf.RData" ) )
+  save( vcf, file = paste0("/home/bst/student/syounkin/R/packages/vcf2R/data/", locus, "-european-all.vcf.RData" ) )
 } else {
-  data(list = paste0(locus,"-european.vcf") )
+  data(list = paste0(locus,"-european-all.vcf") )
 }
-@ 
-The following show method eats up a lot of RAM!
-<<show, eval = FALSE, echo = TRUE>>=
-show(vcf)
 @ 
 <<geno>>=
 geno.mat <- geno(vcf)$GT
 @ 
-
 <<save-geno>>=
-  save( geno.mat, file = paste0("/home/bst/student/syounkin/R/packages/vcf2R/data/", locus, "-european.geno.RData" ) )
+  save( geno.mat, file = paste0("/home/bst/student/syounkin/R/packages/vcf2R/data/", locus, "-european-all.geno.RData" ) )
 @ 
 \end{document}
 

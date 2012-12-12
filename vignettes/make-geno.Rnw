@@ -1,0 +1,52 @@
+% Sweave(file = './make-geno.Rnw')
+% , driver = cacheSweaveDriver)
+\documentclass[10pt]{article}
+<<echo=FALSE>>=
+  options(width=70, continue = " ")
+@ 
+\SweaveOpts{eps=FALSE,echo=TRUE,figs.only=TRUE,keep.source=FALSE, prefix.string=figures/make-geno}
+\usepackage{fullpage}
+\usepackage{times}
+\usepackage[colorlinks=TRUE,urlcolor=blue,citecolor=blue]{hyperref}
+\title{Metadata in the vcf file}
+\author{Samuel G. Younkin}
+\date{\today}
+%\input{/home/bst/student/syounkin/jhsph/latex/sgy}
+\input{/home/sgy/jhsph/latex/sgy}
+\begin{document}
+\setlength{\parskip}{0.2\baselineskip}
+\setlength{\parindent}{0pt}
+\maketitle
+%<<cachedir, echo=FALSE>>=
+%setCacheDir( path = './cache/' )
+%@ 
+<<rmandreload, echo = FALSE>>=
+rm(list=ls())
+source("~/jhsph/R/reload.R")
+@ 
+<<packages>>=
+#library("VariantAnnotation")
+library("vcf2R")
+library("trioClasses")
+library("trio")
+library("VariantAnnotation")
+#library("BSgenome.Hsapiens.UCSC.hg19")
+#library("Gviz")
+#data("BMP4-european-all.geno")
+data("BMP4-european-all.vcf")
+data(ped, package= "trioClasses" )
+@
+<<genomat, eval = FALSE>>=
+geno.mat <- geno(vcf)$GT
+save( geno.mat, file = paste0("/home/bst/student/syounkin/R/packages/vcf2R/data/", locus, "-european-all.geno.RData" ) )
+@ 
+<<>>=
+names(geno(vcf))
+@ 
+<<FT>>=
+table(geno(vcf)$FT)
+@ 
+<<DNFT>>=
+table(geno(vcf)$DNFT)
+@ 
+\end{document}
