@@ -24,38 +24,19 @@ Today is \today.
 <<packages, cache = FALSE>>=
 rm(list=ls())
 source("~/jhsph/R/reload.R")
-#library("VariantAnnotation")
 library("vcf2R")
 library("GGtools")
 data(targets.hg19)
 seqlevels(targets.hg19.gr) <- substr(seqlevels(targets.hg19.gr),4,100)
-#foo <- substr(as.character(seqnames(targets.hg19.gr)),4,100)
-#seqnames(targets.hg19.gr) <- foo
 @ 
 <<make, cache = FALSE>>=
-#make <- TRUE
-#locus <- "8q24"
-#locus <- "ABCA4"
-#locus <- "BMP4"
-#if( make ){
 for( locus in names(targets.hg19.gr) ){
-  fl <- paste0("/thumper/ctsa/beaty/targeted_seq/regional/", locus, "-european-all.recode.vcf.gz" )
-  #fl <- system.file("extdata", "BMP4-european-all.recode.vcf.gz", package = "vcf2R")
-  #vcf <- readVcf(fl, "hg19")
-  #gg = GenomicRanges::GRanges(seqnames="14", IRanges::IRanges(0e6,20e7))
+for( eth in c("european","chinese","filipino") ){
+  fl <- paste0("/thumper/ctsa/beaty/targeted_seq/regional/", locus, "-", eth, "-all.recode.vcf.gz" )
   sm <- vcf2sm(Rsamtools::TabixFile(fl), gr=targets.hg19.gr[locus,], nmetacol=9L)
-  #vcf2sm(fl, gr=gg, nmetacol=9L)
-  save( sm, file = paste0("/home/bst/student/syounkin/R/packages/vcf2R/data/", locus, "-european-all.sm.RData" ) )
+  save( sm, file = paste0("/home/bst/student/syounkin/R/packages/vcf2R/data/", locus, "-", eth, "-all.sm.RData" ) )
 }
-#} else {
-  #data(list = paste0(locus,"-european-all.vcf") )
-#}
-@ 
-<<geno, eval = FALSE>>=
-geno.mat <- geno(vcf)$GT
-@ 
-<<save-geno, eval=FALSE>>=
-  save( geno.mat, file = paste0("/home/bst/student/syounkin/R/packages/vcf2R/data/", locus, "-european-all.geno.RData" ) )
+}
 @ 
 \end{document}
 
