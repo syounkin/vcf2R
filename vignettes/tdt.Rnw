@@ -39,36 +39,17 @@ library("snpStats")
 ## data("PAX7-european-all.sm")
 ## data("PTCH1-european-all.sm")
 ## data("VAX1-european-all.sm")
-data("8q24-european-all.sm")
-data(ped, package= "trioClasses" )
+## data("8q24-chinese-all.sm")
+data("ABCA4-chinese-all.sm")
+data(ped, package= "vcf2R" )
 @
 After loading the necessary packages and data we first make sure that the pedigree data frame contains fields F, M and O for father, mother and offspring ids.  Note that these ids should match those in the vcf file.
 <<pedigree>>=
-pedigreeInfo <- with(ped.df, {
-  F <- as.character(fid)
-  M <- as.character(mid)
-  O <- as.character(id)
-  ped <- substr(id,1,7)
-  father <- F
-  mother <- M
-  affected <- rep(FALSE,length(O))
-  affected[grep("_01", O)] <- TRUE
-  data.frame( ped=ped, id=id, father=father, mother=mother, affected= affected )
+ped.df <- with(ped.df, {
+  data.frame( ped = ped, id = id, father = fid, mother = mid, sex = sex, affected = affected + 1 )
 })
+pedigreeInfo <- subset( ped.df, !is.na(id) )
 rownames(pedigreeInfo) <- pedigreeInfo$id 
-#tg.ped <- Pedigree(pedigreeInfo = pedigreeInfo)
-#tg.ped
-@ 
-First we do our  best to retrieve ids from the vcf/geno data and manipulate them to match the pedigree file.
-<<ids>>=
-id.vec <- rownames(sm)
-head(id.vec)
-foo <- strsplit( x = id.vec, split = "-" )
-id.vec <- as.character(data.frame((do.call( "rbind", foo )))[,3])
-length(id.vec)
-head(id.vec)
-rownames(sm) <- id.vec
-#ped <- pedigreeInfo[pedigreeInfo$id %in% id.vec, ]
 @ 
 <<maf>>=
 maf <- colSums(as(sm, "numeric"), na.rm=TRUE)/colSums(!is.na(sm))/2
