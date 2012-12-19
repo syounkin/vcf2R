@@ -27,11 +27,24 @@ source("~/jhsph/R/reload.R")
 library("vcf2R")
 data(ped, package= "vcf2R" )
 @
-<<idvec>>=
+<<european>>=
 id.vec <- as.character(with( subset(ped.df, Ethnicity=='european'), id ))
 id.vec <- paste0( "H_ME-", id.vec, "-", id.vec )
-@ 
-<<cat>>=
 cat( id.vec, sep = "\n", file = "./../inst/extdata/european-all" )
+@ 
+<<asian>>=
+id.vec <- as.character(with( subset(ped.df, Ethnicity=='asian'), id ))
+id.vec <- paste0( "H_ME-", id.vec, "-", id.vec )
+cat( id.vec, sep = "\n", file = "./../inst/extdata/asian-all" )
+@ 
+<<filipino>>=
+id.vec <- as.character(with( subset(ped.df, Ethnicity=='filipino'), id ))
+id.vec <- paste0( "H_ME-", id.vec, "-", id.vec )
+cat( id.vec, sep = "\n", file = "./../inst/extdata/filipino-all" )
+@ 
+<<guatemalan>>=
+id.vec <- as.character(with( subset(ped.df, Ethnicity=='guatemalan'), id ))
+id.vec <- paste0( "H_ME-", id.vec, "-", id.vec )
+cat( id.vec, sep = "\n", file = "./../inst/extdata/guatemalan-all" )
 @ 
 \end{document}

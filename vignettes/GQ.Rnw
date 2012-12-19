@@ -1,0 +1,45 @@
+% Sweave(file = './GQ.Rnw')
+% , driver = cacheSweaveDriver)
+\documentclass[10pt]{article}
+<<echo=FALSE>>=
+  options(width=70, continue = " ")
+@ 
+\SweaveOpts{eps=FALSE,echo=TRUE,figs.only=TRUE,keep.source=FALSE, prefix.string=figures/GQ}
+\usepackage{fullpage}
+\usepackage{times}
+\usepackage[colorlinks=TRUE,urlcolor=blue,citecolor=blue]{hyperref}
+%\title{8q24 in the European sample: A pipeline for targeted sequence analysis}
+%\author{Samuel G. Younkin}
+%\date{\today}
+%\input{/home/bst/student/syounkin/jhsph/latex/sgy}
+\input{/home/sgy/jhsph/latex/sgy}
+\begin{document}
+\setlength{\parskip}{0.2\baselineskip}
+\setlength{\parindent}{0pt}
+%\maketitle
+%<<cachedir, echo=FALSE>>=
+%setCacheDir( path = './cache/' )
+%@ 
+<<rmandreload, echo = FALSE>>=
+rm(list=ls())
+source("~/jhsph/R/reload.R")
+library("vcf2R")
+@ 
+<<gq>>=
+data(gq.marker)
+@ 
+<<desc>>=
+summary(gq.marker)
+@ 
+\begin{figure}
+<<hist, fig=TRUE>>=
+hist(gq.marker, xlab = "Mean GQ per marker", breaks = 1e1, xlim = c(0,100), main = "Cleft Targeted Sequencing")
+@ 
+\end{figure}
+\begin{figure}
+<<fig=TRUE>>=
+F.marker <- ecdf(gq.marker)
+plot( x = x <- seq(0,100,length.out=1e4), y = F.marker(x), type = "l", xlim = range(gq.marker), lwd = 2, main = "Cleft Targeted Sequencing", xlab = "Mean GQ per marker", ylab = "CDF" )
+@ 
+\end{figure}
+\end{document}

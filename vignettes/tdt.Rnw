@@ -1,0 +1,86 @@
+% Sweave(file = './tdt.Rnw')
+% , driver = cacheSweaveDriver)
+\documentclass[10pt]{article}
+<<echo=FALSE>>=
+  options(width=70, continue = " ")
+@ 
+\SweaveOpts{eps=FALSE,echo=TRUE,figs.only=TRUE,keep.source=FALSE, prefix.string=figures/tdt}
+\usepackage{fullpage}
+\usepackage{times}
+\usepackage[colorlinks=TRUE,urlcolor=blue,citecolor=blue]{hyperref}
+\title{8q24 in the European sample: A pipeline for targeted sequence analysis}
+\author{Samuel G. Younkin}
+\date{\today}
+%\input{/home/bst/student/syounkin/jhsph/latex/sgy}
+\input{/home/sgy/jhsph/latex/sgy}
+\begin{document}
+\setlength{\parskip}{0.2\baselineskip}
+\setlength{\parindent}{0pt}
+%\maketitle
+%<<cachedir, echo=FALSE>>=
+%setCacheDir( path = './cache/' )
+%@ 
+<<rmandreload, echo = FALSE>>=
+rm(list=ls())
+source("~/jhsph/R/reload.R")
+@ 
+<<packages>>=
+library("vcf2R")
+library("snpStats")
+## data("ABCA4-european-all.sm")
+## data("BMP4-european-all.sm")
+## data("FGFR2-european-all.sm")
+## data("FOXE1-european-all.sm")
+## data("IRF6-european-all.sm")
+## data("MAFB-european-all.sm")
+## data("MSX1-european-all.sm")
+## data("NOG-european-all.sm")
+## data("NTN1-european-all.sm")
+## data("PAX7-european-all.sm")
+## data("PTCH1-european-all.sm")
+## data("VAX1-european-all.sm")
+data("8q24-european-all.sm")
+data(ped, package= "trioClasses" )
+@
+After loading the necessary packages and data we first make sure that the pedigree data frame contains fields F, M and O for father, mother and offspring ids.  Note that these ids should match those in the vcf file.
+<<pedigree>>=
+pedigreeInfo <- with(ped.df, {
+  F <- as.character(fid)
+  M <- as.character(mid)
+  O <- as.character(id)
+  ped <- substr(id,1,7)
+  father <- F
+  mother <- M
+  affected <- rep(FALSE,length(O))
+  affected[grep("_01", O)] <- TRUE
+  data.frame( ped=ped, id=id, father=father, mother=mother, affected= affected )
+})
+rownames(pedigreeInfo) <- pedigreeInfo$id 
+#tg.ped <- Pedigree(pedigreeInfo = pedigreeInfo)
+#tg.ped
+@ 
+First we do our  best to retrieve ids from the vcf/geno data and manipulate them to match the pedigree file.
+<<ids>>=
+id.vec <- rownames(sm)
+head(id.vec)
+foo <- strsplit( x = id.vec, split = "-" )
+id.vec <- as.character(data.frame((do.call( "rbind", foo )))[,3])
+length(id.vec)
+head(id.vec)
+rownames(sm) <- id.vec
+#ped <- pedigreeInfo[pedigreeInfo$id %in% id.vec, ]
+@ 
+<<maf>>=
+maf <- colSums(as(sm, "numeric"), na.rm=TRUE)/colSums(!is.na(sm))/2
+maf <- ifelse( maf > 0.5, 1- maf, maf )
+sub <- which( maf >= 0.05)
+@ 
+<<tdt>>=
+tdt.obj <- tdt.snp(data = pedigreeInfo, snp.data = sm, snp.subset = sub )
+@ 
+\begin{figure}
+<<qq-8q24, fig = TRUE>>=
+qq.chisq(chi.squared(tdt.obj, 1), df = 1)
+@ 
+\end{figure}
+\end{document}
