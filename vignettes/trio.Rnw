@@ -8,7 +8,7 @@
 \usepackage{fullpage}
 \usepackage{times}
 \usepackage[colorlinks=TRUE,urlcolor=blue,citecolor=blue]{hyperref}
-\title{BMP4 in the European sample: A pipeline for targeted sequence analysis}
+\title{8q24 in the European sample: A pipeline for targeted sequence analysis}
 \author{Samuel G. Younkin}
 \date{\today}
 %\input{/home/bst/student/syounkin/jhsph/latex/sgy}
@@ -26,9 +26,12 @@ source("~/jhsph/R/reload.R")
 @ 
 <<packages>>=
 library("VariantAnnotation")
+library("trioClasses")
+library("trio.sgy")
+library("vcf2R")
 #library("BSgenome.Hsapiens.UCSC.hg19")
 #library("Gviz")
-data("BMP4-european-all.geno")
+data("8q24-european-all.geno")
 #data("BMP4-european-all.vcf")
 data(ped, package= "trioClasses" )
 @
@@ -42,11 +45,7 @@ pedigreeInfo <- within(ped.df, {
 tg.ped <- Pedigree(pedigreeInfo = pedigreeInfo)
 tg.ped
 @ 
-<<<<<<< HEAD
-Now we do our best to retrieve ids from the vcf/geno data and manipulate them to match the pedigree file.
-=======
 First we do our  best to retrieve ids from the vcf/geno data and manipulate them to match the pedigree file.
->>>>>>> 20a403acc12b69962369eebca98a89d6adfde62e
 <<ids>>=
 id.vec <- colnames(geno.mat)
 head(id.vec)
@@ -55,18 +54,12 @@ id.vec <- as.character(data.frame((do.call( "rbind", foo )))[,3])
 length(id.vec)
 head(id.vec)
 @ 
-<<<<<<< HEAD
 There are \Sexpr{length(id.vec)} subjects in the genotpye matrix.  There is a problem here, as we expect may more European subjects to exist in the vcf file.  But we move on, and now with ids formatted properly we create the genotype object needed for the gTrio class.
 <<genomat2>>=
-=======
-There are \Sexpr{length(id.vec)} subjects in the genotpye matrix.  Now with ids formatted properly we create the genotype object needed for the gTrio class, as well as the accompanying ped object such that all trio memebrs have data in the genotype matrix.  These values may all be NA, as NA is not precluded from the genotype matrix.
-<<genomat>>=
->>>>>>> 20a403acc12b69962369eebca98a89d6adfde62e
 genomat <- t( ifelse( geno.mat == "0/0", 0L, ifelse( geno.mat == "0/1", 1L, ifelse( geno.mat == "1/1", 2L, NA ))) )
 colnames(genomat) <- rownames(geno.mat)
 rownames(genomat) <- id.vec
 geno.trio <- genoMat( tg.ped, genomat)
-<<<<<<< HEAD
 @ 
 As well as the accompanying Pedigree object, such that all trio memebrs have data in the genotype matrix.  These values may all be NA, as NA is not precluded from the genotype matrix.
 <<pedcomp>>=
@@ -83,20 +76,11 @@ Now we create the gTrio object.
 ( gTrio.obj <- gTrio( tg.ped.complete, geno = geno.trio, map = map.df ) )
 @ 
 \Sexpr{nrow(trios(gTrio.obj))} trios
-=======
-( tg.ped.complete <- completeTrios(tg.ped,colnames(geno.trio)) )
-@ 
-Now we create the gTrio object.
-<<gTrio>>=
-( gTrio.obj <- gTrio( tg.ped.complete, geno = geno.trio ) )
-@ 
-
->>>>>>> 20a403acc12b69962369eebca98a89d6adfde62e
 <<>>=
 missing.snp <- rowSums(is.na(geno(gTrio.obj)))/dim(geno(gTrio.obj))[2]/dim(geno(gTrio.obj))[3]
 missing.subject <- colSums(is.na(geno(gTrio.obj)))/dim(geno(gTrio.obj))[1]
-length(missing.subject)
-length(missing.snp)
+#length(missing.subject)
+#length(missing.snp)
 @ 
 
 \begin{figure}
@@ -108,14 +92,8 @@ hist( missing.subject, breaks = 10)
 \end{figure}
 
 <<maf>>=
-geno <- geno(gTrio.obj)
-<<<<<<< HEAD
+#geno <- geno(gTrio.obj)
 maf <- getMAF(gTrio.obj)
-#rowSums(geno[,,1:2],dims=1, na.rm=TRUE)/rowSums(!is.na(geno[,,1:2]),dims=1)/2
-=======
-maf <- rowSums(geno[,,1:2],dims=1, na.rm=TRUE)/rowSums(!is.na(geno[,,1:2]),dims=1)/2
-maf <- ifelse( maf >= 0.5, 1 - maf, maf )
->>>>>>> 20a403acc12b69962369eebca98a89d6adfde62e
 summary(maf)
 @ 
 \begin{figure}
@@ -125,20 +103,14 @@ points(  x = maf, y = missing.snp, pch = 20, cex = 2 )
 @ 
 \end{figure}
 <<>>=
-<<<<<<< HEAD
 filter <- c(which(missing.snp > 0.10),which(maf<0.05))
 geno.trio.2 <- geno.trio[-filter,]
 map.df.2 <- map.df[-filter,]
 ( gTrio.obj <- gTrio( tg.ped.complete, geno = geno.trio.2, map = map.df.2 ) )
-=======
-geno.trio.2 <- geno.trio[-c(which(missing.snp > 0.10),which(maf<0.05)),]
-( gTrio.obj <- gTrio( tg.ped.complete, geno = geno.trio.2 ) )
->>>>>>> 20a403acc12b69962369eebca98a89d6adfde62e
-geno <- getGeno( gTrio.obj, type = "holger" )
+#geno <- getGeno( gTrio.obj, type = "holger" )
 @
 <<maf>>=
-geno <- geno(gTrio.obj)
-<<<<<<< HEAD
+#geno <- geno(gTrio.obj)
 maf2 <- getMAF(gTrio.obj)
 summary(maf2)
 #maf2 <- rowSums(geno[,,1:2],dims=1, na.rm=TRUE)/rowSums(!is.na(geno[,,1:2]),dims=1)/2
@@ -147,52 +119,35 @@ summary(maf2)
 
 Now, it's easy to perform any method in Holger's trio package, such as alllelicTDT.
 <<aTDT>>=
-geno.mat <- getGeno( gTrio.obj, type = "holger" )
-( aTDT <- allelicTDT( mat.snp = geno.mat, size = 1e4 ) )
-( gTDT <- tdt( snp = geno.mat ) )
+#geno <- getGeno( gTrio.obj, type = "holger" )
+#( aTDT <- allelicTDT( mat.snp = geno, size = 1e4 ) )
+aTDT.df <- aTDT(gTrio.obj)
+head(aTDT.df[order(aTDT.df$pval),] )
+#( gTDT <- tdt( snp = geno ) )
 @ 
+
+
+
 
 \begin{figure}
 <<ld, fig=TRUE>>=
+geno.mat <- getGeno( gTrio.obj, type = "holger" )
 ld <- getLD(x = geno.mat, which = "both", parentsOnly = TRUE, addVarN=TRUE)
 ldblocks <- findLDblocks(ld)
 plot(ldblocks)
 @ 
 \end{figure}
 
-
-
 \begin{figure}
 <<maf-plot, fig=TRUE>>=
 hist(maf, breaks = 10)
 @ 
 \end{figure}
 
-=======
-maf2 <- rowSums(geno[,,1:2],dims=1, na.rm=TRUE)/rowSums(!is.na(geno[,,1:2]),dims=1)/2
-maf2 <- ifelse( maf2 >= 0.5, 1 - maf2, maf2 )
+<<gTDT>>=
+( gTDT <- tdt( snp = geno.mat ) )
 @ 
 
-Now, it's easy to perform any method in Holger's trio package, such as alllelicTDT.
-<<aTDT>>=
-geno <- getGeno( gTrio.obj, type = "holger" )
-( aTDT <- allelicTDT( mat.snp = geno, size = 1e4 ) )
-( gTDT <- tdt( snp = geno ) )
-@ 
 
-\begin{figure}
-<<ld, fig=TRUE>>=
-ld <- getLD(x = geno, which = "both", parentsOnly = TRUE)
-plot(ld, y = "rSquare", xlab = "", ylab = "", cexAxis = 0.01)
-@ 
-\end{figure}
-
-\begin{figure}
-<<maf-plot, fig=TRUE>>=
-hist(maf, breaks = 10)
-@ 
-\end{figure}
-
->>>>>>> 20a403acc12b69962369eebca98a89d6adfde62e
 
 \end{document}
